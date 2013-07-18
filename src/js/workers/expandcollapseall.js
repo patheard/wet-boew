@@ -145,12 +145,15 @@
 		*/
 		_initAccordion : function () {
 			_pe.document.on('click', 'details summary', function () {
-				var detailClicked = this.parentNode,
-					len,
-					$detail,
+				var $detail,
 					$details = $('details'),
-					$detailParent = $(detailClicked).parents('details'),
-					$otherDetails;
+					$detailClicked = $(this.parentNode),
+					$detailParent = $detailClicked.parents('details'),
+					$otherDetails,
+					len,
+					detailsTop,
+					detailsTopOrig = $detailClicked.offset().top,
+					viewportTop = _pe.window.scrollTop();
 
 				// Check for nested details element
 				if ($detailParent.length !== 0) {
@@ -159,17 +162,23 @@
 					while (len--) {
 						$detail = $details.eq(len);
 						// Close nested details elements with the same details parent.	This includes child details elements as well.
-						if ($details[len] !== detailClicked && $detail.parents('details')[0] === $detailParent[0]) {
+						if ($details[len] !== $detailClicked[0] && $detail.parents('details')[0] === $detailParent[0]) {
 							$otherDetails = $otherDetails.add($detail).add($detail.find('details'));
 						}
 					}
 				} else {
-					$otherDetails = $details.not(detailClicked);
+					$otherDetails = $details.not($detailClicked);
 				}
 
 				// Close the other details elements
 				if ($otherDetails.length !== 0) {
 					_pe.fn.expandcollapseall._changeProp($otherDetails, false);
+				}
+
+				// Check that the top of the clicked details element is still in view.
+				detailsTop = $detailClicked.offset().top;
+				if (detailsTop < viewportTop) {
+					_pe.window.scrollTop(detailsTop - (detailsTopOrig - viewportTop)); // Keep clicked details element in the same relative position to viewport top
 				}
 			});
 		},
