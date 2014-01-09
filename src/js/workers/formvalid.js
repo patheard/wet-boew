@@ -140,8 +140,7 @@
 						prefixEnd = _pe.dic.get('%colon') + ' </span>',
 						separator = _pe.dic.get('%hyphen'),
 						ariaLive = elm.find('.arialive')[0],
-						summary,
-						key, label, labelString;
+						summary, errorKey, errorMsg, fieldName, key, label, elements;
 
 					form.find('[aria-invalid="true"]').removeAttr('aria-invalid');
 					if (errors.length !== 0) {
@@ -191,20 +190,29 @@
 									break;
 								}
 							}
+
+							// Field is in error - add error message to aria-live region
 							if (i !== 0) {
 								len = errors.length;
 								for (i = 0; i !== len; i += 1) {
 									label = errors[i].parentNode;
 									if (label.getAttribute("for") === key) {
-										labelString = label.innerHTML;
-										if (labelString !== ariaLive.innerHTML) {
-											ariaLive.innerHTML = labelString;
+										errorKey = 'data-for="' + key + '"';
+										if (ariaLive.innerHTML.indexOf(errorKey) === -1) {
+											fieldName = label.querySelector('.field-name');
+											ariaLive.innerHTML += '<span ' + errorKey + '>' + (fieldName ? fieldName.innerHTML + " " + errorMap[key] : label.innerHTML ) + '</span>';
 										}
 										break;
 									}
 								}
-							} else if (ariaLive.innerHTML.length !== 0) {
-								ariaLive.innerHTML = "";
+							// Field not in error - remove all valid fields from aria-live region
+							} else {
+								for (i = 0, elements = this.validElements(); elements[i]; i += 1) {
+									errorMsg = ariaLive.querySelector('[data-for="' + elements[i].name + '"]');
+									if (errorMsg) {
+										ariaLive.removeChild(errorMsg);
+									}
+								}
 							}
 						}
 
